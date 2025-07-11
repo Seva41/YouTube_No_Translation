@@ -32,6 +32,7 @@
     "post:web-ext": "rm manifest.json",
     "package": "npm run package:firefox && npm run package:chrome && npm run post:web-ext",
     "package:firefox": "npm run build:firefox && rm -rf build-tmp && mkdir build-tmp && cp -r dist build-tmp/ && cp LICENSE build-tmp/ && cp CHANGELOG.md build-tmp/ && cp manifest.json build-tmp/ && (cd build-tmp && web-ext build --overwrite-dest -a ../web-ext-artifacts/firefox --filename=firefox-ynt-${npm_package_version}.zip) && rm -rf build-tmp && npm run clean",
+    "package:mozilla-reviewer": "node scripts/package-for-mozilla-reviewers.js",
     "package:chrome": "npm run build:chrome && rm -rf build-tmp && mkdir build-tmp && cp -r dist build-tmp/ && cp LICENSE build-tmp/ && cp CHANGELOG.md build-tmp/ && cp manifest.json build-tmp/ && (cd build-tmp && web-ext build --overwrite-dest -a ../web-ext-artifacts/chrome --filename=chrome-ynt-${npm_package_version}.zip) && rm -rf build-tmp && npm run clean",
     "post:build": "rimraf dist/config dist/types",
     "prepare:safari": "npm run build:safari && npm run copy:safari && npm run setup:safari",
