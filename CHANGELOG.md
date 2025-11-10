@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.18.0] - 2025-11-10
+
+### Added
+- **Mobile support**: All main features (Titles, Descriptions, Channel name & description, Thumbnails, Subtitles) are now supported on mobile YouTube (m.youtube.com). Except for Audio Tracks feature, it remains **DESKTOP-ONLY** for now; mobile support is not planned yet.
+
 ### Fixed
 - **Description hover flash**: Eliminated visual flash when hovering over short description
 
@@ -539,7 +544,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 *Note: This changelog was introduced in version 2.2.30. For earlier version history, please refer to the [GitHub releases](https://github.com/YouG-o/YouTube_No_Translation/releases).*
 
-[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.2...HEAD
+[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.0...HEAD
+[2.18.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.2...v2.18.0
 [2.17.2]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.1...v2.17.2
 [2.17.1]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.0...v2.17.1
 [2.17.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.16.0...v2.17.0
