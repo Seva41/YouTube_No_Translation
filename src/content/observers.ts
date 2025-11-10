@@ -15,6 +15,7 @@ import { currentSettings } from './index';
 import { extractVideoIdFromUrl, extractVideoIdFromWatchFlexy } from '../utils/video';
 import { applyVideoPlayerSettings } from '../utils/videoSettings';
 import { waitForElement, waitForFilledVideoTitles } from '../utils/dom';
+import { isMobileSite } from '../utils/navigation'
 
 import { refreshMainTitle, refreshEmbedTitle, refreshMiniplayerTitle, cleanupMainTitleContentObserver ,cleanupIsEmptyObserver, cleanupPageTitleObserver, cleanupEmbedTitleContentObserver, cleanupMiniplayerTitleContentObserver } from './titles/mainTitle';
 import { refreshBrowsingVideos, cleanupAllBrowsingTitlesElementsObservers } from './titles/browsingTitles';
@@ -34,6 +35,8 @@ import { processChannelVideoDescriptions } from './channel/ChannelVideoDescripti
 import { refreshInfoCardsTitles, cleanupInfoCards } from './titles/infoCards';
 import { setupInfoCardTeasersObserver, cleanupInfoCardTeasersObserver } from  './titles/infoCardsTeasers';
 import { cleanupThumbnailObservers } from './Thumbnails/browsingThumbnails';
+import { setupMobilePanelObserver, cleanupMobilePanelObserver } from './Mobile/mobilePanel';
+
 
 // MAIN OBSERVERS -----------------------------------------------------------
 let videoPlayerListener: ((e: Event) => void) | null = null;
@@ -62,22 +65,25 @@ export function setupVideoPlayerListener() {
 
     coreLog('Setting up video player listener');
 
-    // Listen for user interactions with settings menu
-    document.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (target.closest('.ytp-settings-menu')) {
-            userInitiatedChange = true;
-            
-            if (userChangeTimeout) {
-                window.clearTimeout(userChangeTimeout);
+    
+    if (!isMobileSite()) {
+        // Listen for user interactions with settings menu
+        document.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('.ytp-settings-menu')) {
+                userInitiatedChange = true;
+                
+                if (userChangeTimeout) {
+                    window.clearTimeout(userChangeTimeout);
+                }
+                
+                userChangeTimeout = window.setTimeout(() => {
+                    userInitiatedChange = false;
+                    userChangeTimeout = null;
+                }, 2000);
             }
-            
-            userChangeTimeout = window.setTimeout(() => {
-                userInitiatedChange = false;
-                userChangeTimeout = null;
-            }, 2000);
-        }
-    }, true);
+        }, true);      
+    }
 
     videoPlayerListener = function(e: Event) {
         if (!(e.target instanceof HTMLVideoElement)) return;
@@ -292,7 +298,7 @@ let playlistDebounceTimer: number | null = null;
 
 async function pageVideosObserver() {
     cleanupPageVideosObserver();
-
+    
     let pageName: string = '';
     if (window.location.pathname === '/') {
         pageName = 'Home';
@@ -305,43 +311,73 @@ async function pageVideosObserver() {
     } else {
         pageName = 'Unknown';
     }
-    coreLog(`Setting up ${pageName} page videos observer`);
+    coreLog(`Setting up ${pageName} page videos observer (${isMobileSite() ? 'mobile' : 'desktop'})`);
 
-    // Wait for the rich grid renderer to be present
-    const grids = Array.from(document.querySelectorAll('#contents.ytd-rich-grid-renderer')) as HTMLElement[];
-
-    if (grids.length === 0) {
-        // Wait for the first grid to appear
-        await new Promise<void>(resolve => {
-            const observer = new MutationObserver(() => {
-                const found = document.querySelector('#contents.ytd-rich-grid-renderer');
-                if (found) {
-                    observer.disconnect();
-                    resolve();
-                }
+    if (isMobileSite()) {
+        // Mobile: wait for rich-grid-renderer-contents
+        const gridContents = document.querySelector('.rich-grid-renderer-contents');
+        
+        if (!gridContents) {
+            // Wait for the first grid to appear
+            await new Promise<void>(resolve => {
+                const observer = new MutationObserver(() => {
+                    const found = document.querySelector('.rich-grid-renderer-contents');
+                    if (found) {
+                        observer.disconnect();
+                        resolve();
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
             });
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-    }
+        }
 
-    const allGrids = Array.from(document.querySelectorAll('#contents.ytd-rich-grid-renderer')) as HTMLElement[];
-    allGrids.forEach(grid => {
-        const observer = new MutationObserver(() => handleGridMutationDebounced(pageName));
-        observer.observe(grid, {
-            childList: true,
-            attributes: true,
-            characterData: true
-        });
-        pageGridObservers.push(observer);
-    });
+        const grid = document.querySelector('.rich-grid-renderer-contents') as HTMLElement;
+        if (grid) {
+            const observer = new MutationObserver(() => handleGridMutationDebounced(pageName));
+            observer.observe(grid, {
+                childList: true,
+                attributes: true,
+                characterData: true
+            });
+            pageGridObservers.push(observer);
+        }
+    } else {
+        // Desktop: wait for rich grid renderer
+        const grids = Array.from(document.querySelectorAll('#contents.ytd-rich-grid-renderer')) as HTMLElement[];
 
-    // Add parent grid observer (useful when clicking on filters)
-    const gridParent = document.querySelector('#primary > ytd-rich-grid-renderer') as HTMLElement | null;
-    if (gridParent) {
-        pageGridParentObserver = new MutationObserver(() => handleGridMutationDebounced(pageName));
-        pageGridParentObserver.observe(gridParent, {
-            attributes: true
+        if (grids.length === 0) {
+            // Wait for the first grid to appear
+            await new Promise<void>(resolve => {
+                const observer = new MutationObserver(() => {
+                    const found = document.querySelector('#contents.ytd-rich-grid-renderer');
+                    if (found) {
+                        observer.disconnect();
+                        resolve();
+                    }
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            });
+        }
+
+        const allGrids = Array.from(document.querySelectorAll('#contents.ytd-rich-grid-renderer')) as HTMLElement[];
+        allGrids.forEach(grid => {
+            const observer = new MutationObserver(() => handleGridMutationDebounced(pageName));
+            observer.observe(grid, {
+                childList: true,
+                attributes: true,
+                characterData: true
+            });
+            pageGridObservers.push(observer);
         });
+
+        // Add parent grid observer (useful when clicking on filters)
+        const gridParent = document.querySelector('#primary > ytd-rich-grid-renderer') as HTMLElement | null;
+        if (gridParent) {
+            pageGridParentObserver = new MutationObserver(() => handleGridMutationDebounced(pageName));
+            pageGridParentObserver.observe(gridParent, {
+                attributes: true
+            });
+        }
     }
 }
 
@@ -371,42 +407,69 @@ function handleGridMutationDebounced(pageName: string) {
 function recommendedVideosObserver() {
     cleanupRecommendedVideosObserver();
 
-    // Observer for recommended videos (side bar)
-    waitForElement('#secondary-inner ytd-watch-next-secondary-results-renderer #items').then((contents) => {
-        browsingTitlesLog('Setting up recommended videos observer');
+    const containerSelector = isMobileSite() 
+        ? 'ytm-item-section-renderer[section-identifier="related-items"]' 
+        : '#secondary-inner ytd-watch-next-secondary-results-renderer #items';
+
+    waitForElement(containerSelector).then((contents) => {
+        browsingTitlesLog(`Setting up recommended videos observer (${isMobileSite() ? 'mobile' : 'desktop'})`);
         
-        waitForFilledVideoTitles().then(() => {
-            refreshBrowsingVideos();
-        });
+        refreshBrowsingVideos();
         
-        // Check if we need to observe deeper (when logged in)
-        const itemSection = contents.querySelector('ytd-item-section-renderer');
-        const targetElement = itemSection ? itemSection : contents;
-        
-        browsingTitlesLog(`Observing: ${targetElement === contents ? '#items directly' : 'ytd-item-section-renderer inside #items'}`);
-        
-        recommendedObserver = new MutationObserver(() => {
-            if (recommendedDebounceTimer !== null) {
-                clearTimeout(recommendedDebounceTimer);
-            }
-            recommendedDebounceTimer = window.setTimeout(() => {
-                browsingTitlesLog('Recommended videos mutation debounced (side bar)');
-                refreshBrowsingVideos().then(() => {
-                    setTimeout(() => {
-                        refreshBrowsingVideos();
-                    }, 1000);
-                    setTimeout(() => {
-                        refreshBrowsingVideos();
-                    }, 2000);
-                });
-                recommendedDebounceTimer = null;
-            }, OBSERVERS_DEBOUNCE_MS);
-        });
-        
-        recommendedObserver.observe(targetElement, {
-            childList: true,
-            subtree: true
-        });
+        if (isMobileSite()) {
+            // Mobile: observe ytm-item-section-renderer directly
+            recommendedObserver = new MutationObserver(() => {
+                if (recommendedDebounceTimer !== null) {
+                    clearTimeout(recommendedDebounceTimer);
+                }
+                recommendedDebounceTimer = window.setTimeout(() => {
+                    browsingTitlesLog('Recommended videos mutation debounced (mobile)');
+                    refreshBrowsingVideos().then(() => {
+                        setTimeout(() => {
+                            refreshBrowsingVideos();
+                        }, 1000);
+                        setTimeout(() => {
+                            refreshBrowsingVideos();
+                        }, 2000);
+                    });
+                    recommendedDebounceTimer = null;
+                }, OBSERVERS_DEBOUNCE_MS);
+            });
+            
+            recommendedObserver.observe(contents, {
+                childList: true,
+                subtree: true
+            });
+        } else {
+            // Desktop: check if we need to observe deeper (when logged in)
+            const itemSection = contents.querySelector('ytd-item-section-renderer');
+            const targetElement = itemSection ? itemSection : contents;
+            
+            browsingTitlesLog(`Observing: ${targetElement === contents ? '#items directly' : 'ytd-item-section-renderer inside #items'}`);
+            
+            recommendedObserver = new MutationObserver(() => {
+                if (recommendedDebounceTimer !== null) {
+                    clearTimeout(recommendedDebounceTimer);
+                }
+                recommendedDebounceTimer = window.setTimeout(() => {
+                    browsingTitlesLog('Recommended videos mutation debounced (desktop)');
+                    refreshBrowsingVideos().then(() => {
+                        setTimeout(() => {
+                            refreshBrowsingVideos();
+                        }, 1000);
+                        setTimeout(() => {
+                            refreshBrowsingVideos();
+                        }, 2000);
+                    });
+                    recommendedDebounceTimer = null;
+                }, OBSERVERS_DEBOUNCE_MS);
+            });
+            
+            recommendedObserver.observe(targetElement, {
+                childList: true,
+                subtree: true
+            });
+        }
     });
 };
 
@@ -414,8 +477,12 @@ function recommendedVideosObserver() {
 function searchResultsObserver() {
     cleanupSearchResultsVideosObserver();
 
+    const containerSelector = isMobileSite() 
+        ? 'ytm-section-list-renderer' 
+        : 'ytd-section-list-renderer #contents';
+
     // --- Observer for search results
-    waitForElement('ytd-section-list-renderer #contents').then((contents) => {
+    waitForElement(containerSelector).then((contents) => {
         let pageName = null;
         if (window.location.pathname === '/results') {
             pageName = 'Search';
@@ -427,7 +494,7 @@ function searchResultsObserver() {
             pageName = 'Unknown';
         }
       
-        browsingTitlesLog(`Setting up ${pageName} results videos observer`);
+        browsingTitlesLog(`Setting up ${pageName} results videos observer (${isMobileSite() ? 'mobile' : 'desktop'})`);
 
         waitForFilledVideoTitles().then(() => {
             refreshBrowsingVideos();
@@ -435,31 +502,64 @@ function searchResultsObserver() {
         });
         
         searchObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                if (mutation.type === 'childList' && 
-                    mutation.addedNodes.length > 0 && 
-                    mutation.target instanceof HTMLElement) {
-                    const titles = mutation.target.querySelectorAll('#video-title');
-                    if (titles.length > 0) {
-                        if (searchDebounceTimer !== null) {
-                            clearTimeout(searchDebounceTimer);
-                        }
-                        searchDebounceTimer = window.setTimeout(() => {
-                            browsingTitlesLog(`${pageName} page mutation debounced`);
-                            refreshShortsAlternativeFormat();
-                            refreshBrowsingVideos().then(() => {
-                                setTimeout(() => {
-                                    refreshBrowsingVideos();
-                                    refreshShortsAlternativeFormat();
-                                }, 1000);
-                                setTimeout(() => {
-                                    refreshBrowsingVideos();
-                                    refreshShortsAlternativeFormat();
-                                }, 2000);
-                            });
-                            searchDebounceTimer = null;
-                        }, OBSERVERS_DEBOUNCE_MS);
+            if (isMobileSite()) {
+                // Mobile: simpler check - any childList mutation triggers refresh
+                let hasChanges = false;
+                for (const mutation of mutations) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        hasChanges = true;
                         break;
+                    }
+                }
+                
+                if (hasChanges) {
+                    if (searchDebounceTimer !== null) {
+                        clearTimeout(searchDebounceTimer);
+                    }
+                    searchDebounceTimer = window.setTimeout(() => {
+                        browsingTitlesLog(`${pageName} page mutation debounced (mobile)`);
+                        refreshShortsAlternativeFormat();
+                        refreshBrowsingVideos().then(() => {
+                            setTimeout(() => {
+                                refreshBrowsingVideos();
+                                refreshShortsAlternativeFormat();
+                            }, 1000);
+                            setTimeout(() => {
+                                refreshBrowsingVideos();
+                                refreshShortsAlternativeFormat();
+                            }, 2000);
+                        });
+                        searchDebounceTimer = null;
+                    }, OBSERVERS_DEBOUNCE_MS);
+                }
+            } else {
+                // Desktop: original logic (check for #video-title elements)
+                for (const mutation of mutations) {
+                    if (mutation.type === 'childList' && 
+                        mutation.addedNodes.length > 0 && 
+                        mutation.target instanceof HTMLElement) {
+                        const titles = mutation.target.querySelectorAll('#video-title');
+                        if (titles.length > 0) {
+                            if (searchDebounceTimer !== null) {
+                                clearTimeout(searchDebounceTimer);
+                            }
+                            searchDebounceTimer = window.setTimeout(() => {
+                                browsingTitlesLog(`${pageName} page mutation debounced`);
+                                refreshShortsAlternativeFormat();
+                                refreshBrowsingVideos().then(() => {
+                                    setTimeout(() => {
+                                        refreshBrowsingVideos();
+                                        refreshShortsAlternativeFormat();
+                                    }, 1000);
+                                    setTimeout(() => {
+                                        refreshBrowsingVideos();
+                                        refreshShortsAlternativeFormat();
+                                    }, 2000);
+                                });
+                                searchDebounceTimer = null;
+                            }, OBSERVERS_DEBOUNCE_MS);
+                            break;
+                        }
                     }
                 }
             }
@@ -651,7 +751,8 @@ let urlChangeDebounceTimer: number | null = null;
 const URL_CHANGE_DEBOUNCE_MS = 250;
 
 export function setupUrlObserver() {
-    coreLog('Setting up URL observer');    
+    coreLog('Setting up URL observer');
+
     // --- Standard History API monitoring
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
@@ -674,11 +775,19 @@ export function setupUrlObserver() {
         handleUrlChange();
     });
     
-    // --- YouTube's custom page data update event
-    window.addEventListener('yt-page-data-updated', () => {
-        coreLog('YouTube page data updated');
-        handleUrlChange();
-    });
+    if (isMobileSite()) {
+        // --- Mobile: Use state-navigateend event
+        window.addEventListener('state-navigateend', () => {
+            coreLog('Mobile SPA navigation completed (state-navigateend)');
+            handleUrlChange();
+        });
+    } else {
+        // --- Desktop: Use yt-page-data-updated event
+        window.addEventListener('yt-page-data-updated', () => {
+            coreLog('Desktop page data updated (yt-page-data-updated)');
+            handleUrlChange();
+        });
+    }
     
     // --- YouTube's custom SPA navigation events
     /*
@@ -734,6 +843,7 @@ function observersCleanup() {
     cleanupInfoCardTeasersObserver();
     
     cleanupThumbnailObservers();
+    cleanupMobilePanelObserver();
 }
 
 function handleUrlChange() {
@@ -758,7 +868,9 @@ function handleUrlChangeInternal() {
 
     //coreLog('Observers cleaned up');
     
-    currentSettings?.titleTranslation && setupNotificationTitlesDropdownObserver();
+    if (!isMobileSite() && currentSettings?.titleTranslation) {
+        setupNotificationTitlesDropdownObserver();
+    }
     
     if (currentSettings?.titleTranslation) {
         setTimeout(() => {
@@ -786,7 +898,7 @@ function handleUrlChangeInternal() {
         // --- Handle all new channel page types (videos, featured, shorts, etc.)
         coreLog(`[URL] Detected channel page`);
 
-        if (currentSettings?.titleTranslation || currentSettings?.descriptionTranslation) {
+        if ((currentSettings?.titleTranslation || currentSettings?.descriptionTranslation) && !isMobileSite()) {
             waitForElement('#c4-player').then(() => {
                 refreshChannelPlayer();
             });
@@ -804,7 +916,7 @@ function handleUrlChangeInternal() {
                     refreshMainChannelName();
                 });
         }
-        if (currentSettings?.descriptionTranslation) {
+        if (currentSettings?.descriptionTranslation && !isMobileSite()) {
             waitForElement('ytd-video-renderer').then(() => {
                 processChannelVideoDescriptions();
             });
@@ -852,7 +964,9 @@ function handleUrlChangeInternal() {
             break;
         case '/playlist':  // --- Playlist page
             coreLog(`[URL] Detected playlist page`);
-            currentSettings?.titleTranslation && playlistVideosObserver();
+            if (!isMobileSite()) {
+                currentSettings?.titleTranslation && playlistVideosObserver();
+            }
             break;
         case '/channel':  // --- Channel page (old format)
             coreLog(`[URL] Detected channel page`);
@@ -860,30 +974,44 @@ function handleUrlChangeInternal() {
             break;
         case '/watch': // --- Video page
             coreLog(`[URL] Detected video page`);
-            // Check if we're on a video with a playlist
-            if (currentSettings?.titleTranslation && window.location.search.includes('list=')) {
-                coreLog(`[URL] Detected video page with playlist`);
-                playlistVideosObserver();
+            if (!isMobileSite()) {
+                // Check if we're on a video with a playlist
+                if (currentSettings?.titleTranslation && window.location.search.includes('list=')) {
+                    coreLog(`[URL] Detected video page with playlist`);
+                    playlistVideosObserver();
+                }
+                if (currentSettings?.titleTranslation || currentSettings?.descriptionTranslation) {
+                    setupMainVideoObserver();
+                };
+                currentSettings?.descriptionTranslation && setupTimestampClickObserver();
+                // Handle fullscreen titles (embed titles are specific to /watch pages)
+                if (currentSettings?.titleTranslation) {
+                    refreshEmbedTitle();
+                    //Delayed call as backup (immediat call doesn't always work)
+                    setTimeout(() => refreshEmbedTitle(), 1000);
+                    setTimeout(() => refreshEmbedTitle(), 3000);
+                }
+            } else {
+                if (currentSettings?.titleTranslation) {
+                    waitForElement('ytm-slim-video-information-renderer').then(() => {
+                        refreshMainTitle();
+                    });
+                }
             }
-            if (currentSettings?.titleTranslation || currentSettings?.descriptionTranslation) {
-                setupMainVideoObserver();
-            };
-
             if (currentSettings?.titleTranslation) {
                 recommendedVideosObserver();
-                setupEndScreenObserver();
-                setupPostVideoObserver();
-                refreshInfoCardsTitles();
-                setupInfoCardTeasersObserver();
+                if (!isMobileSite()) {
+                    setupEndScreenObserver();
+                    setupPostVideoObserver();
+                    refreshInfoCardsTitles();
+                    setupInfoCardTeasersObserver();
+                }
             }
-            currentSettings?.descriptionTranslation && setupTimestampClickObserver();
             
-            // Handle fullscreen titles (embed titles are specific to /watch pages)
-            if (currentSettings?.titleTranslation) {
-                refreshEmbedTitle();
-                //Delayed call as backup (immediat call doesn't always work)
-                setTimeout(() => refreshEmbedTitle(), 1000);
-                setTimeout(() => refreshEmbedTitle(), 3000);
+
+            // Setup mobile panel observer on all pages          
+            if (isMobileSite() && (currentSettings?.titleTranslation || currentSettings?.descriptionTranslation)) {
+                setupMobilePanelObserver();
             }
             break;
         case '/embed': // --- Embed video page
@@ -910,8 +1038,10 @@ export function setupVisibilityChangeListener(): void {
                 refreshMiniplayerTitle();
                 if (window.location.pathname === '/watch') {
                     refreshMainTitle();
-                    refreshEndScreenTitles();
-                    refreshInfoCardsTitles();
+                    if (!isMobileSite()) {
+                        refreshEndScreenTitles();
+                        refreshInfoCardsTitles();
+                    }
                 }
             }
         }
