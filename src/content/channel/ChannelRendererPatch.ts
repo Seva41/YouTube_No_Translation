@@ -33,7 +33,7 @@ export async function patchChannelRendererBlocks(): Promise<void> {
             // Desktop: handle is in #subscribers element (e.g., "@Nowtech • 435K subscribers")
             const handleElement = renderer.querySelector('yt-formatted-string#subscribers');
             const handleText = handleElement?.textContent?.trim() || "";
-            const handleMatch = handleText.match(/@([a-zA-Z0-9_-]+)/);
+            const handleMatch = handleText.match(/@([a-zA-Z0-9._-]+)/);
             handle = handleMatch ? handleMatch[1] : null;
         }
         
