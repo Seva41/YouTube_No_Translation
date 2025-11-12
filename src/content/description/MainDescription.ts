@@ -225,7 +225,6 @@ export function updateDescriptionElement(element: HTMLElement, description: stri
         const innerSpan = document.createElement('span');
         innerSpan.className = 'yt-core-attributed-string--link-inherit-color';
         innerSpan.dir = 'auto';
-        innerSpan.style.color = 'rgb(255, 255, 255)';
         
         // URL regex pattern
         const urlPattern = /(https?:\/\/[^\s]+)/g;
@@ -272,7 +271,6 @@ export function updateDescriptionElement(element: HTMLElement, description: stri
         const innerSpan = document.createElement('span');
         innerSpan.className = 'yt-core-attributed-string--link-inherit-color';
         innerSpan.dir = 'auto';
-        innerSpan.style.color = 'rgb(255, 255, 255)';
         
         // URL regex pattern
         const urlPattern = /(https?:\/\/[^\s]+)/g;
