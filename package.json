@@ -1,6 +1,6 @@
 {
   "name": "ynt",
-  "version": "2.18.1",
+  "version": "2.18.2",
   "description": "Keep YouTube content in its original language: titles, descriptions, audio... No more unwanted translations.",
   "scripts": {
     "clean": "rm -rf dist && rm -f manifest.json",
@@ -68,16 +68,16 @@
   },
   "homepage": "https://youtube-no-translation.vercel.app/",
   "devDependencies": {
-    "@types/chrome": "^0.0.326",
-    "@types/webextension-polyfill": "^0.12.3",
-    "autoprefixer": "^10.4.21",
-    "concurrently": "^9.2.0",
-    "esbuild": "^0.25.8",
+    "@types/chrome": "^0.1.30",
+    "@types/webextension-polyfill": "^0.12.4",
+    "autoprefixer": "^10.4.22",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.27.0",
     "postcss": "^8.5.6",
-    "rimraf": "^6.0.1",
+    "rimraf": "^6.1.0",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.9.2",
-    "web-ext": "^8.10.0"
+    "typescript": "^5.9.3",
+    "web-ext": "^9.1.0"
   },
   "dependencies": {
     "webextension-polyfill": "^0.12.0"

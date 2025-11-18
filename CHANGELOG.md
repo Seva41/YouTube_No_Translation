@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.18.2] - 2025-11-18
+
+## Added 
+- Ukrainian language is now available for audio & subtitles tracks
+
+## Fixed
+- Reverted changes on description from 2.18.0. (Added debounce back for description replacement : this means the flash on hovering translated description is bac -for now-, but no risk of infinite loop)
+
 ## [2.18.1] - 2025-11-12
 
 ## Fixed 
@@ -550,7 +558,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 *Note: This changelog was introduced in version 2.2.30. For earlier version history, please refer to the [GitHub releases](https://github.com/YouG-o/YouTube_No_Translation/releases).*
 
-[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.1...HEAD
+[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.2...HEAD
+[2.18.2]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.1...v2.18.2
 [2.18.1]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.0...v2.18.1
 [2.18.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.2...v2.18.0
 [2.17.2]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.1...v2.17.2
