@@ -546,13 +546,12 @@ export function setupDescriptionContentObserver(id: string) {
     // If we have a cached description, set up the observer
     setupObserver();
     
+    // Debounce timer
+    let debounceTimer: number | null = null;
+    
     // Local function to avoid duplicating the observer setup code
     function setupObserver() {
         //descriptionLog('Setting up description content observer');
-        
-        // Track last known text to avoid unnecessary restorations
-        let lastKnownText = getCurrentDescriptionText(descriptionElement as HTMLElement);
-        let isProcessing = false; // Prevent concurrent restorations
         
         descriptionContentObserver = new MutationObserver((mutations) => {
             // Skip if we don't have a cached description to compare with
@@ -561,60 +560,49 @@ export function setupDescriptionContentObserver(id: string) {
                 return;
             }
             
-            // Skip if already processing a restoration
-            if (isProcessing) return;
-        
-            // Make sure descriptionElement still exists in this closure
-            if (!descriptionElement) return;
-            
-            const currentText = getCurrentDescriptionText(descriptionElement as HTMLElement);
-            if (!currentText) return;
-            
-            // CRITICAL: Only proceed if text actually changed
-            if (currentText === lastKnownText) {
-                // Text hasn't changed, ignore these mutations
-                return;
+            // Clear previous debounce timer
+            if (debounceTimer !== null) {
+                clearTimeout(debounceTimer);
             }
             
-            // Update last known text immediately to prevent duplicate processing
-            lastKnownText = currentText;
-            
-            // Compare similarity instead of exact match
-            const similarity = calculateSimilarity(normalizeText(currentText, true), normalizeText(cachedDescription, true));
-            
-            // Consider texts similar if they match at least 75%
-            const isOriginal = similarity >= 0.75;
-            if (isOriginal) return;
-            
-            //descriptionLog(`currentText: ${normalizeText(currentText, true)}`);
-            //descriptionLog(`cachedDescription: ${normalizeText(cachedDescription, true)}`);
-            //descriptionLog(`Similarity: ${(similarity * 100).toFixed(1)}%`);
-            
-            descriptionLog('Description content changed by YouTube, restoring original');
-            
-            // Mark as processing to prevent concurrent restorations
-            isProcessing = true;
-            
-            // Temporarily disconnect to prevent infinite loop
-            descriptionContentObserver?.disconnect();
-            
-            // Update with original description - ensure cachedDescription isn't null
-            updateDescriptionElement(descriptionElement as HTMLElement, cachedDescription as string, id);
-            
-            // Update last known text after restoration
-            lastKnownText = getCurrentDescriptionText(descriptionElement as HTMLElement);
-            
-            // Reconnect observer
-            if (descriptionContentObserver) {
-                descriptionContentObserver.observe(descriptionElement, {
-                    childList: true,
-                    subtree: true,
-                    characterData: true
-                });
-            }
-            
-            // Reset processing flag
-            isProcessing = false;
+            // Debounce: wait for mutations to settle before processing
+            debounceTimer = window.setTimeout(() => {
+                debounceTimer = null;
+                
+                // Make sure descriptionElement still exists in this closure
+                if (!descriptionElement) return;
+                
+                const currentText = getCurrentDescriptionText(descriptionElement as HTMLElement);
+                if (!currentText) return;
+                
+                // Compare similarity instead of exact match
+                const similarity = calculateSimilarity(normalizeText(currentText, true), normalizeText(cachedDescription, true));
+                
+                // Consider texts similar if they match at least 75%
+                const isOriginal = similarity >= 0.75;
+                if (isOriginal) return;
+                
+                //descriptionLog(`currentText: ${normalizeText(currentText, true)}`);
+                //descriptionLog(`cachedDescription: ${normalizeText(cachedDescription, true)}`);
+                //descriptionLog(`Similarity: ${(similarity * 100).toFixed(1)}%`);
+                
+                descriptionLog('Description content changed by YouTube, restoring original');
+                
+                // Temporarily disconnect to prevent infinite loop
+                descriptionContentObserver?.disconnect();
+                
+                // Update with original description - ensure cachedDescription isn't null
+                updateDescriptionElement(descriptionElement as HTMLElement, cachedDescription as string, id);
+                
+                // Reconnect observer
+                if (descriptionContentObserver) {
+                    descriptionContentObserver.observe(descriptionElement, {
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+                }
+            }, 50); // 50ms debounce
         });
         
         // Start observing - ensure descriptionElement isn't null
