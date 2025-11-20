@@ -398,16 +398,18 @@ export async function refreshBrowsingVideos(): Promise<void> {
             //browsingTitlesLog(`Found ${browsingTitles.length} mobile browsing titles to process`);
         } else {
             // Desktop selectors
-            // Select classic video titles
             const classicTitles = Array.from(document.querySelectorAll('#video-title')) as HTMLElement[];
 
-            // Select recommended video titles (new format)
-            const recommendedTitles = Array.from(
+            // Feedback videos on home page ("What did you think of this video?" section)
+            const feedbackTitles = Array.from(document.querySelectorAll('ytd-compact-video-renderer span#video-title')) as HTMLElement[];
+
+            // Featured videos (watch page recommendations)
+            const featuredTitles = Array.from(
                 document.querySelectorAll('a.yt-lockup-metadata-view-model__title > span.yt-core-attributed-string, a.yt-lockup-metadata-view-model-wiz__title > span.yt-core-attributed-string')
             ) as HTMLElement[];
 
-            // Merge both lists
-            browsingTitles = [...classicTitles, ...recommendedTitles];
+            // Merge all lists
+            browsingTitles = [...classicTitles, ...feedbackTitles, ...featuredTitles];
             //browsingTitlesLog(`Found ${browsingTitles.length} desktop browsing titles to process`);
         }
 
