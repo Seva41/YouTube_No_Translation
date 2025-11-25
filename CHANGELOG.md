@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- Added locales support. Added French and Ukrainian translation (thanks to [btncua](https://github.com/btncua) for Ukrainian translation).
+
 ## [2.18.2] - 2025-11-18
 
 ## Added 

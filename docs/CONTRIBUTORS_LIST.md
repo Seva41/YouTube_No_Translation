@@ -2,3 +2,4 @@
   
   - **[Seva41](https://github.com/Seva41)**: Safari port.
   - **[therichkid](https://github.com/therichkid)**: Fixed tooltip in popup.
+  - **[btncua](https://github.com/btncua)**: Ukrainian translation.
