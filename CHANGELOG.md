@@ -7,20 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Added
+## [2.19.0] - 2025-11-27
+
+### Added
+- Feedback card title (on home page "What did you think of this video") are now replaced by original title if needed.
 - Added locales support. Added French and Ukrainian translation (thanks to [btncua](https://github.com/btncua) for Ukrainian translation).
 
 ## [2.18.2] - 2025-11-18
 
-## Added 
+### Added 
 - Ukrainian language is now available for audio & subtitles tracks
 
-## Fixed
+### Fixed
 - Reverted changes on description from 2.18.0. (Added debounce back for description replacement : this means the flash on hovering translated description is bac -for now-, but no risk of infinite loop)
 
 ## [2.18.1] - 2025-11-12
 
-## Fixed 
+### Fixed 
 - Removed hard coded white color for main description font (for light theme)
 - Allow dots in channel handle extraction for channel renderer
 
@@ -561,7 +564,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 *Note: This changelog was introduced in version 2.2.30. For earlier version history, please refer to the [GitHub releases](https://github.com/YouG-o/YouTube_No_Translation/releases).*
 
-[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.2...HEAD
+[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.19.0...HEAD
+[2.19.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.2...v2.19.0
 [2.18.2]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.1...v2.18.2
 [2.18.1]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.18.0...v2.18.1
 [2.18.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.17.2...v2.18.0
