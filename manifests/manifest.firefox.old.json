@@ -1,12 +1,12 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "YouTube No Translation",
   "icons": {
     "48": "dist/assets/icons/icon_48.png",
     "96": "dist/assets/icons/icon_96.png"
   },
 
-  "action": {
+  "browser_action": {
     "default_icon": {
       "48": "dist/assets/icons/icon_48.png",
       "96": "dist/assets/icons/icon_96.png"
@@ -30,19 +30,25 @@
         "*://*.youtube.com/*",
         "*://*.youtube-nocookie.com/*"
       ],
-      "js": ["dist/browser-polyfill.js", "dist/content/content.js"]
+      "js": [
+        "dist/browser-polyfill.js",
+        "dist/content/content.js"
+      ],
+      "all_frames": true
     }
   ],
 
   "background": {
-    "scripts": ["dist/browser-polyfill.js", "dist/background/background.js"],
-    "type": "module"
+    "scripts": [
+      "dist/browser-polyfill.js",
+      "dist/background/background.js"
+    ]
   },
 
   "browser_specific_settings": {
     "gecko": {
       "id": "{9a3104a2-02c2-464c-b069-82344e5ed4ec}",
-      "strict_min_version": "112.0"
+      "strict_min_version": "78.0"
     }
   },
 

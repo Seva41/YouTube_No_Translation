@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Spanish language locales for the extension.
+- Support for YouTube embeds inside external iframes (e.g., watch2gether or any site hosting an inline player).
 
 ## [2.19.0] - 2025-11-27
 

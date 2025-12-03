@@ -27,7 +27,8 @@
       "js": [
         "dist/browser-polyfill.js",
         "dist/content/content.js"
-      ]
+      ],
+      "all_frames": true
     }
   ],
   "background": {
