@@ -7,7 +7,6 @@
  * This program is distributed without any warranty; see the license for details.
  */
 
-
 const fs = require('fs');
 const path = require('path');
 
@@ -22,27 +21,42 @@ function stripDonationsFromHTML(filePath) {
     let content = fs.readFileSync(filePath, 'utf8');
     let modified = false;
 
-    // Remove Ko-fi footer section in settings.html
+    // Remove Ko-fi and donation-related UI from settings.html (Safari App Store compliance)
     if (filePath.includes('settings.html')) {
-        const kofiFooterRegex = /<div class="flex flex-col items-center">[\s\S]*?<\/div>\s*<div class="flex items-center justify-between">/;
-        if (kofiFooterRegex.test(content)) {
-            content = content.replace(kofiFooterRegex, '<div class="flex items-center justify-between">');
+        // 1) Remove the donation/support message (now i18n-based)
+        // Example: <span ... data-i18n="settings_footer_support"></span>
+        const supportMessageRegex = /<span\b[^>]*\bdata-i18n="settings_footer_support"[^>]*>[\s\S]*?<\/span>\s*/g;
+        if (supportMessageRegex.test(content)) {
+            content = content.replace(supportMessageRegex, '');
+            modified = true;
+        }
+
+        // 2) Remove the Ko-fi link block (centered container)
+        // Example:
+        // <div class="flex justify-center">
+        //   <a href="https://ko-fi.com/yougo" ...>
+        //     <img ...>
+        //   </a>
+        // </div>
+        const kofiBlockRegex = /<div\s+class="flex\s+justify-center">\s*<a\s+href="https:\/\/ko-fi\.com\/yougo"[\s\S]*?<\/a>\s*<\/div>\s*/g;
+        if (kofiBlockRegex.test(content)) {
+            content = content.replace(kofiBlockRegex, '');
             modified = true;
         }
     }
 
-    // Remove Ko-fi link in popup.html
+    // Remove Ko-fi link block in popup.html (Safari App Store compliance)
     if (filePath.includes('popup.html')) {
-        const kofiLinkRegex = /<div class="flex justify-center">[\s\S]*?<a href="https:\/\/ko-fi\.com\/yougo"[\s\S]*?<\/a>[\s\S]*?<\/div>/;
-        if (kofiLinkRegex.test(content)) {
-            content = content.replace(kofiLinkRegex, '');
+        const kofiBlockRegex = /<div\s+class="flex\s+justify-center">\s*<a\s+href="https:\/\/ko-fi\.com\/yougo"[\s\S]*?<\/a>\s*<\/div>\s*/g;
+        if (kofiBlockRegex.test(content)) {
+            content = content.replace(kofiBlockRegex, '');
             modified = true;
         }
     }
 
     if (modified) {
         fs.writeFileSync(filePath, content, 'utf8');
-        console.log(`[Safari] Removed Ko-fi links from: ${path.basename(filePath)}`);
+        console.log(`[Safari] Removed donation UI from: ${path.basename(filePath)}`);
     }
 }
 
@@ -72,7 +86,7 @@ function stripToastCodeFromContentJS() {
     let content = fs.readFileSync(contentJSPath, 'utf8');
     let modified = false;
 
-    // 1. Remove the entire toast.ts section
+    // 1) Remove the entire toast.ts section
     const toastStartMarker = '// src/content/SupportToast/toast.ts';
     const startIndex = content.indexOf(toastStartMarker);
 
@@ -96,7 +110,7 @@ function stripToastCodeFromContentJS() {
         console.log('[Safari] Toast code section not found in content.js');
     }
 
-    // 2. Remove the call to maybeShowSupportToast() in initializeFeatures()
+    // 2) Remove the call to maybeShowSupportToast() in initializeFeatures()
     const toastCallRegex = /currentSettings\?\.\s*askForSupport\?\.\s*enabled\s*&&\s*maybeShowSupportToast\(\);?\s*/g;
     if (toastCallRegex.test(content)) {
         content = content.replace(toastCallRegex, '');
@@ -110,9 +124,9 @@ function stripToastCodeFromContentJS() {
 }
 
 function stripDonationsForSafari() {
-    console.log('[Safari] Stripping donation links, toast, and Ko-fi assets for App Store compliance...');
+    console.log('[Safari] Stripping donation UI, toast, and Ko-fi assets for App Store compliance...');
 
-    // Strip Ko-fi from HTML files
+    // Strip Ko-fi from HTML files (built files inside dist/)
     const htmlFiles = [
         path.join(DIST_DIR, 'popup', 'popup.html'),
         path.join(DIST_DIR, 'popup', 'settings.html')
