@@ -4,7 +4,7 @@
   "description": "Keep YouTube content in its original language: titles, descriptions, audio... No more unwanted translations.",
   "scripts": {
     "clean": "rm -rf dist && rm -f manifest.json",
-    "create-dirs": "mkdir -p dist/popup dist/content dist/background dist/styles dist/assets/icons dist/_locales",
+    "create-dirs": "mkdir -p dist/popup dist/content dist/background dist/styles dist/assets/icons",
     "bundle:content": "esbuild src/content/index.ts --bundle --outfile=dist/content/content.js --platform=browser --format=iife",
     "bundle:background": "esbuild src/background/background.ts --bundle --outfile=dist/background/background.js --platform=browser --format=iife",
     "bundle:popup": "esbuild src/popup/popup.ts --bundle --outfile=dist/popup/popup.js --platform=browser --format=iife",

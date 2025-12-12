@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6A0038A02EEBF3DE0027058C /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 6A00389F2EEBF3DE0027058C /* _locales */; };
 		6AB4C9D12EA38F0800D882D6 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6AB4C9D02EA38F0800D882D6 /* icon.png */; };
 		6AEA401B2EAA29B300EC10F3 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 6AEA401A2EAA29B300EC10F3 /* CHANGELOG.md */; };
 		C62FBAC92DE94D2B009AD7D3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C62FBAC82DE94D2B009AD7D3 /* AppDelegate.swift */; };
@@ -65,6 +66,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6A00389F2EEBF3DE0027058C /* _locales */ = {isa = PBXFileReference; lastKnownFileType = folder; name = _locales; path = ../../_locales; sourceTree = "<group>"; };
 		6AB4C9D02EA38F0800D882D6 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon.png; path = /Users/yougo/Documents/Code/YouTube_No_Translation/assets/icons/icon.png; sourceTree = "<absolute>"; };
 		6AEA401A2EAA29B300EC10F3 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = CHANGELOG.md; path = ../../../CHANGELOG.md; sourceTree = "<group>"; };
 		C62FBAC52DE94D2B009AD7D3 /* YouTube No Translation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "YouTube No Translation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -134,6 +136,7 @@
 		C62FBABC2DE94D2B009AD7D3 = {
 			isa = PBXGroup;
 			children = (
+				6A00389F2EEBF3DE0027058C /* _locales */,
 				C62FBAC72DE94D2B009AD7D3 /* YouTube No Translation */,
 				C62FBAE52DE94D2C009AD7D3 /* YouTube No TranslationTests */,
 				C62FBAEF2DE94D2C009AD7D3 /* YouTube No TranslationUITests */,
@@ -389,6 +392,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A0038A02EEBF3DE0027058C /* _locales in Resources */,
 				6AEA401B2EAA29B300EC10F3 /* CHANGELOG.md in Resources */,
 				C62FBB292DE94D2C009AD7D3 /* dist in Resources */,
 				C62FBB312DE94D2C009AD7D3 /* manifest.json in Resources */,
@@ -597,7 +601,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "YouTube No Translation Extension/YouTube_No_Translation_Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "YouTube No Translation Extension/Info.plist";
@@ -609,7 +613,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.17.2;
+				MARKETING_VERSION = 2.20.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -627,7 +631,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "YouTube No Translation Extension/YouTube_No_Translation_Extension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = J36MVR82CP;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -651,7 +655,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.17.2;
+				MARKETING_VERSION = 2.20.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -673,7 +677,7 @@
 				CODE_SIGN_ENTITLEMENTS = "YouTube No Translation/YouTube No Translation.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -700,7 +704,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.17.2;
+				MARKETING_VERSION = 2.20.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -725,7 +729,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = J36MVR82CP;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -752,7 +756,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 2.17.2;
+				MARKETING_VERSION = 2.20.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
