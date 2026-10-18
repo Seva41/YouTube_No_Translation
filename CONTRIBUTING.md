@@ -8,6 +8,24 @@ I'm actively looking for contributors to help with these specific areas:
 
 - 
 
+### 🤖 LLM-Assisted Contributions
+
+**LLM-assisted contributions are absolutely welcome**, as long as you:
+
+- **Understand and review** the code you're submitting. Don't blindly trust AI-generated code just because it works.
+- **Follow the contribution guidelines**, especially the existing architecture, coding conventions, and patterns.
+- **Take responsibility** for your changes and be able to explain, maintain, and fix them.
+
+You don't need to be a professional developer. Beginners and hobbyists are welcome, provided they have enough programming knowledge to **understand and fix their contributions**.
+
+**About Agent mode:** Personally, I exclusively use LLMs in *Ask mode*, as I want to stay in full control of my codebase and understand every change being made. At the moment, I'm strongly opposed to use Agent mode myself for this reason. 
+
+That said, **Agent-generated contributions are still accepted**, provided you've thoroughly reviewed, understood, and can fix every change yourself.
+
+**No programming experience?** You can still contribute! Open an Issue labeled `Suggestion` and feel free to share your AI-generated code as a starting point for potential future review.
+
+**Pull Requests should be reserved for contributors who can actually understand, review, and fix their code.** The maintainer(s) shouldn't have to spend time reviewing blindly generated code that doesn't follow the project's guidelines.
+
 ## 🚀 Getting Started
 
 ### Prerequisites

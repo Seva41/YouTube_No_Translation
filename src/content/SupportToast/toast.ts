@@ -1,3 +1,9 @@
+//THIS TOAST IS DISABLED DUE TO COMPLAINTS FROM SOME USERS.
+//BUT SUPPORT RATE WENT REALLY DOWN AFTER DISABLING IT.
+//SO MAINTAINING THE ADDON IS NOT SUSTAINABLE ANYMORE.
+//I MAY RE-ENABLE IT IN THE FUTURE, OR TRY TO FIND A BETTER WAY TO PROPOSE SUPPORT TO USERS
+
+
 import { ExtensionSettings } from '../../types/types';
 import { isFirefox, isEdge, isChromium } from '../../utils/browser';
 import { getMessage, localizeDocument } from '../../utils/i18n';
