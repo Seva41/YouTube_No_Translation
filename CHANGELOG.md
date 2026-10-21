@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Override vulnerable development-tool versions of `shell-quote` and `postcss-selector-parser` with patched releases while retaining Tailwind 3 compatibility.
 - Document remaining upstream `node-forge` and `braces` advisories and the limits of forced audit fixes.
 
+### Fixed
+- Updated the page-context MediaSession title so third-party extensions that add title prefixes (such as remaining-time indicators) use the restored video title without causing title-update loops.
+
 ## [2.25.1] - 2026-09-24
 ### Added
 - Thai (th) language translation

@@ -10,6 +10,7 @@
 const contentScriptEntries = [
   'scripts/getChannelIdScript.js',
   'titles/mainTitleScript.js',
+  'titles/updateMediaSessionTitleScript.js',
   'titles/getIdFromMiniPlayer.js',
   'titles/TitlesInnerTube.js',
   'audio/audioScript.js',

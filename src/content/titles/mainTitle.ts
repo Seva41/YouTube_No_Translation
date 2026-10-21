@@ -156,16 +156,43 @@ export function updateMainTitleElement(element: HTMLElement, title: string, vide
     });
 }
 
+function updatePageMediaSessionTitle(title: string): void {
+    const url = browser.runtime.getURL('dist/content/scripts/updateMediaSessionTitleScript.js');
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.setAttribute('data-title', title);
+
+    if (isSafari()) {
+        fetch(url)
+            .then(response => response.text())
+            .then(code => {
+                script.textContent = code;
+                (document.head || document.documentElement).appendChild(script);
+                script.remove();
+            })
+            .catch(error => mainTitleErrorLog('Failed to update page MediaSession title:', error));
+        return;
+    }
+
+    script.src = url;
+    script.addEventListener('load', () => script.remove(), { once: true });
+    script.addEventListener('error', () => {
+        script.remove();
+        mainTitleErrorLog('Failed to load page MediaSession title script');
+    }, { once: true });
+    (document.head || document.documentElement).appendChild(script);
+}
+
 function updatePageTitle(mainTitle: string): void {
     cleanupPageTitleObserver();
     
     const expectedTitle = `${mainTitle} - YouTube`;
     const videoIdAtSetup = new URLSearchParams(window.location.search).get('v');
+    const previousMediaTitle = 'mediaSession' in navigator
+        ? navigator.mediaSession.metadata?.title
+        : null;
 
-    // Also update mediaSession metadata title if available (used by external extensions and OS media overlays)
-    if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
-        navigator.mediaSession.metadata.title = mainTitle;
-    }
+    updatePageMediaSessionTitle(mainTitle);
 
     // Helper to check if title ends with our expected title or main title (allowing third-party prefixes)
     const isTitleMatching = (currentTitle: string): boolean => {
@@ -173,20 +200,30 @@ function updatePageTitle(mainTitle: string): void {
         const normalizedExpected = normalizeText(expectedTitle);
         const normalizedMain = normalizeText(mainTitle);
 
-        return normalizedCurrent === normalizedExpected ||
-               normalizedCurrent.endsWith(` ${normalizedExpected}`) ||
-               normalizedCurrent.endsWith(` ${normalizedMain}`) ||
-               normalizedCurrent.endsWith(normalizedExpected);
+        const matchesExpected = normalizedCurrent === normalizedExpected ||
+            normalizedCurrent.endsWith(` ${normalizedExpected}`) ||
+            normalizedCurrent.endsWith(normalizedExpected);
+        const matchesMain = normalizedCurrent === normalizedMain ||
+            normalizedCurrent.endsWith(` ${normalizedMain}`);
+
+        if (!matchesExpected && !matchesMain) return false;
+
+        const normalizedPreviousMediaTitle = normalizeText(previousMediaTitle);
+        if (!normalizedPreviousMediaTitle || normalizedPreviousMediaTitle === normalizedMain) return true;
+
+        const matchedSuffix = matchesExpected ? normalizedExpected : normalizedMain;
+        const prefix = normalizedCurrent.slice(0, -matchedSuffix.length).trim();
+        return !prefix.endsWith(normalizedPreviousMediaTitle);
     };
 
-    // Helper to preserve any third-party prefix when reverting title
+    // Preserve only a prefix that precedes the previous media title, not the stale YouTube title itself.
     const constructExpectedTitle = (currentTitle: string): string => {
-        const separators = [' • ', ' - ', ' | ', ' — '];
-        for (const sep of separators) {
-            const index = currentTitle.lastIndexOf(sep);
-            if (index !== -1) {
-                const prefix = currentTitle.substring(0, index);
-                return `${prefix}${sep}${expectedTitle}`;
+        if (previousMediaTitle) {
+            const suffixes = [`${previousMediaTitle} - YouTube`, previousMediaTitle];
+            for (const suffix of suffixes) {
+                if (currentTitle.endsWith(suffix)) {
+                    return `${currentTitle.slice(0, -suffix.length)}${expectedTitle}`;
+                }
             }
         }
         return expectedTitle;
