@@ -1,13 +1,13 @@
-//THIS TOAST IS DISABLED DUE TO COMPLAINTS FROM SOME USERS.
-//BUT SUPPORT RATE WENT REALLY DOWN AFTER DISABLING IT.
-//SO MAINTAINING THE ADDON IS NOT SUSTAINABLE ANYMORE.
-//I MAY RE-ENABLE IT IN THE FUTURE, OR TRY TO FIND A BETTER WAY TO PROPOSE SUPPORT TO USERS
-
+//THIS TOAST IS DISABLED DUE TO COMPLAINTS FROM SOME USERS
+//BUT SUPPORT RATE WENT REALLY DOWN AFTER DISABLING IT
+//SO TO ME, MAINTAINING THE ADDON IS NOT SUSTAINABLE ANYMORE
+//I'LL DO MY BEST TO KEEP IT FUNCTIONAL, BUT I WON'T SPEND MUCH TIME ON IT
 
 import { ExtensionSettings } from '../../types/types';
 import { isFirefox, isEdge, isChromium } from '../../utils/browser';
 import { getMessage, localizeDocument } from '../../utils/i18n';
 
+const SUPPORT_TOAST_ENABLED = false;
 const TOAST_ID = 'ynt-support-toast';
 const REMIND_DELAY = 30;
 const INITIAL_DELAY = 7;
@@ -173,7 +173,6 @@ async function removeToast() {
     await browser.storage.local.set({ supportToastClosed: true });
 }
 
-const SUPPORT_TOAST_ENABLED = false;
 
 export async function maybeShowSupportToast() {
     if (!SUPPORT_TOAST_ENABLED) return;

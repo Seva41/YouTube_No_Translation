@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.26.0] - 2026-10-23
+
 ### Security
 - Override vulnerable development-tool versions of `shell-quote` and `postcss-selector-parser` with patched releases while retaining Tailwind 3 compatibility.
 - Document remaining upstream `node-forge` and `braces` advisories and the limits of forced audit fixes.
@@ -693,7 +695,8 @@ optimize waitForElement to reduce DOM queries (checking addedNodes only)
 
 *Note: This changelog was introduced in version 2.2.30. For earlier version history, please refer to the [GitHub releases](https://github.com/YouG-o/YouTube_No_Translation/releases).*
 
-[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.25.1...HEAD
+[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.26.0...HEAD
+[2.26.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.25.1...v2.26.0
 [2.25.1]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.25.0...v2.25.1
 [2.25.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.24.6...v2.25.0
 [2.24.6]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.24.5...v2.24.6
