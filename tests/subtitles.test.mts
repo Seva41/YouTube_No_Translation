@@ -14,19 +14,27 @@ import { test } from 'node:test';
 
 const source = readFileSync(new URL('../src/content/subtitles/subtitlesScript.js', import.meta.url), 'utf8');
 type Track = { languageCode?: string; kind?: string; name?: { simpleText: string } };
+type AudioTrack = { id: string };
 
 const asr = (languageCode: string): Track => ({ languageCode, kind: 'asr', name: { simpleText: languageCode } });
 const manual = (languageCode: string): Track => ({ languageCode, name: { simpleText: languageCode } });
+const audioTrack = (languageCode: string, isOriginal: boolean): AudioTrack => ({
+    id: `251;${Buffer.from(`acont ${isOriginal ? 'original' : 'dubbed-auto'} lang==${languageCode}`).toString('base64')}`
+});
 
-function select(captionTracks: Track[], { audioLanguage = 'en-US', enabled = true, current = {} }: { audioLanguage?: string | null; enabled?: boolean; current?: Track } = {}) {
+function select(captionTracks: Track[], { audioLanguage = 'en-US', defaultAudioLanguage = audioLanguage, enabled = true, current = {} }: { audioLanguage?: string | null; defaultAudioLanguage?: string | null; enabled?: boolean; current?: Track } = {}) {
     let selected = current;
+    const availableAudioTracks = audioLanguage
+        ? [audioTrack('fr-FR', false), audioTrack(audioLanguage, true)]
+        : [audioTrack('fr-FR', false)];
     const player = {
         getOption: () => current,
+        getAvailableAudioTracks: () => availableAudioTracks,
         getPlayerResponse: () => ({
             captions: { playerCaptionsTracklistRenderer: { captionTracks } },
-            streamingData: audioLanguage ? { adaptiveFormats: [
+            streamingData: defaultAudioLanguage ? { adaptiveFormats: [
                 { audioTrack: { id: 'ar.10', audioIsDefault: false, isAutoDubbed: true } },
-                { audioTrack: { id: `${audioLanguage}.4`, audioIsDefault: true } }
+                { audioTrack: { id: `${defaultAudioLanguage}.4`, audioIsDefault: true } }
             ] } : undefined
         }),
         setOption: (_module: string, _option: string, track: Track) => { selected = track; }
@@ -34,6 +42,7 @@ function select(captionTracks: Track[], { audioLanguage = 'en-US', enabled = tru
     runInNewContext(source, {
         document: { getElementById: () => player },
         window: { location: { pathname: '/watch' } },
+        atob,
         localStorage: { getItem: (key: string) => ({
             'ynt-subtitlesLanguage': 'original',
             'ynt-subtitlesAsrEnabled': String(enabled)
@@ -77,4 +86,20 @@ test('does not treat a lone dubbed ASR as a manual fallback', () => {
 });
 test('uses the original language rather than hardcoding English', () => {
     assert.equal(select([asr('ar'), asr('en'), asr('fr')], { audioLanguage: 'fr-FR' }).languageCode, 'fr');
+});
+
+test('selects original-language manual captions without a matching ASR track', () => {
+    const originalManualTrack = manual('zh');
+    assert.equal(
+        select([asr('en'), manual('en-US'), originalManualTrack], { audioLanguage: 'zh-Hant' }),
+        originalManualTrack
+    );
+});
+
+test('identifies the original track from its encoded ID, not audioIsDefault', () => {
+    const originalTrack = manual('en-US');
+    assert.equal(
+        select([manual('fr-FR'), originalTrack], { audioLanguage: 'en-US', defaultAudioLanguage: 'fr-FR' }),
+        originalTrack
+    );
 });

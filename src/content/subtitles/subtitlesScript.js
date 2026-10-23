@@ -23,10 +23,15 @@
  * - ASR (Automatic Speech Recognition) tracks: May also exist for dubbed audio
  * - Translated tracks: Generated from ASR track
  * 
- * Strategy to get original subtitles track:
- * 1. Identify the default/original audio track language from player response.
- * 2. Find the ASR track matching that original audio language (or fallback to a single ASR track).
- */
+ * Strategy:
+ * 1. Decode audio track IDs and identify the track marked as original.
+ * 2. Prefer a manual subtitle track matching that language.
+ * 3. If no matching manual track exists, use matching ASR subtitles when enabled.
+ * 4. If no audio track is marked original, infer the language from ASR only when there is exactly one ASR track. Prefer a matching manual track, then use ASR when enabled.
+ * 5. If the language cannot be inferred, use a manual track only when it is the sole caption track; otherwise leave subtitles disabled.
+ * 
+ * This should handle 99% of cases. There are sill potential edge cases (example : only one audio track that give no clue about the original language, and multiple ASR tracks in different languages). In those cases, subtitles will be disabled.
+*/
 
 
 (() => {
@@ -71,6 +76,24 @@
      */
     function languageCodesMatch(code1, code2) {
         return getBaseLanguageCode(code1) === getBaseLanguageCode(code2);
+    }
+
+    function getOriginalAudioLanguage(player) {
+        for (const track of player.getAvailableAudioTracks()) {
+            const encodedTrackData = track.id.split(';')[1];
+            if (!encodedTrackData) continue;
+
+            try {
+                const decodedTrackData = atob(encodedTrackData);
+                if (!decodedTrackData.includes('original')) continue;
+
+                return decodedTrackData.match(/lang..([-a-zA-Z]+)/)?.[1] ?? null;
+            } catch {
+                continue;
+            }
+        }
+
+        return null;
     }
 
     let retryCount = 0;
@@ -118,48 +141,58 @@
 
             // If preference is "original", look for original language
             if (subtitlesLanguage === 'original') {
-                // Dubbed audio can have its own ASR tracks, so array order is not
-                // an indication of the original language. Audio IDs use lang.variant.
-                const originalAudio = response.streamingData?.adaptiveFormats
-                    ?.find(format => format.audioTrack?.audioIsDefault)?.audioTrack;
-                const originalLanguage = originalAudio?.id?.split('.')[0];
+                const originalLanguage = getOriginalAudioLanguage(player);
+                const originalManualTrack = originalLanguage
+                    ? captionTracks.find(track =>
+                        !track.kind && languageCodesMatch(track.languageCode, originalLanguage)
+                    )
+                    : undefined;
+
+                if (originalManualTrack) {
+                    // Skip if already on this track
+                    if (currentTrack && languageCodesMatch(currentTrack.languageCode, originalManualTrack.languageCode) && !currentTrack.kind && !currentTrack.translationLanguage) {
+                        log(`Subtitles already set to original language (manual): "${originalManualTrack.name.simpleText}" [${originalManualTrack.languageCode}]`);
+                        return true;
+                    }
+                    log(`Setting subtitles to original language (manual): "${originalManualTrack.name.simpleText}" [${originalManualTrack.languageCode}]`);
+                    player.setOption('captions', 'track', originalManualTrack);
+                    return true;
+                }
+
                 const asrTracks = captionTracks.filter(track => track.kind === 'asr');
                 const asrTrack = originalLanguage
                     ? asrTracks.find(track => languageCodesMatch(track.languageCode, originalLanguage))
                     : (asrTracks.length === 1 ? asrTracks[0] : undefined);
 
-                if (!asrTrack) {
-                    // Fallback: if there's only one subtitle track, assume it's the original
-                    if (captionTracks.length === 1 && !captionTracks[0].kind) {
-                        const singleTrack = captionTracks[0];
-                        // Skip if already on this track
-                        if (currentTrack && languageCodesMatch(currentTrack.languageCode, singleTrack.languageCode) && !currentTrack.kind && !currentTrack.translationLanguage) {
-                            log(`Subtitles already set to original (manual): "${singleTrack.name.simpleText}" [${singleTrack.languageCode}]`);
-                            return true;
-                        }
-                        log(`Only subtitle track found is manual, assuming it's original: "${singleTrack.name.simpleText}" [${singleTrack.languageCode}]`);
-                        player.setOption('captions', 'track', singleTrack);
+                if (!asrTrack && captionTracks.length === 1 && !captionTracks[0].kind) {
+                    const singleTrack = captionTracks[0];
+                    if (currentTrack && languageCodesMatch(currentTrack.languageCode, singleTrack.languageCode) && !currentTrack.kind && !currentTrack.translationLanguage) {
+                        log(`Subtitles already set to original (manual): "${singleTrack.name.simpleText}" [${singleTrack.languageCode}]`);
                         return true;
                     }
+                    log(`Only subtitle track found is manual, assuming it's original: "${singleTrack.name.simpleText}" [${singleTrack.languageCode}]`);
+                    player.setOption('captions', 'track', singleTrack);
+                    return true;
+                }
 
+                if (!asrTrack) {
                     log('Cannot determine original language, disabling subtitles');
                     player.setOption('captions', 'track', {});
                     return true;
                 }
 
-                // Find manual track in original language
-                const originalTrack = captionTracks.find(track =>
-                    languageCodesMatch(track.languageCode, asrTrack.languageCode) && !track.kind
+                // If audio metadata is unavailable, use a manual track matching the sole ASR language.
+                const asrLanguageManualTrack = captionTracks.find(track =>
+                    !track.kind && languageCodesMatch(track.languageCode, asrTrack.languageCode)
                 );
 
-                if (originalTrack) {
-                    // Skip if already on this track
-                    if (currentTrack && languageCodesMatch(currentTrack.languageCode, originalTrack.languageCode) && !currentTrack.kind && !currentTrack.translationLanguage) {
-                        log(`Subtitles already set to original language (manual): "${originalTrack.name.simpleText}" [${originalTrack.languageCode}]`);
+                if (asrLanguageManualTrack) {
+                    if (currentTrack && languageCodesMatch(currentTrack.languageCode, asrLanguageManualTrack.languageCode) && !currentTrack.kind && !currentTrack.translationLanguage) {
+                        log(`Subtitles already set to original language (manual): "${asrLanguageManualTrack.name.simpleText}" [${asrLanguageManualTrack.languageCode}]`);
                         return true;
                     }
-                    log(`Setting subtitles to original language (manual): "${originalTrack.name.simpleText}" [${originalTrack.languageCode}]`);
-                    player.setOption('captions', 'track', originalTrack);
+                    log(`Setting subtitles to original language (manual): "${asrLanguageManualTrack.name.simpleText}" [${asrLanguageManualTrack.languageCode}]`);
+                    player.setOption('captions', 'track', asrLanguageManualTrack);
                     return true;
                 }
 

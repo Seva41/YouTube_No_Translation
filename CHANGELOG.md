@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Updated the page-context MediaSession title so third-party extensions that add title prefixes (such as remaining-time indicators) use the restored video title without causing title-update loops.
+- Identify the original audio language from encoded track IDs and prefer matching manual subtitles before ASR.
 
 ## [2.25.1] - 2026-09-24
 ### Added
