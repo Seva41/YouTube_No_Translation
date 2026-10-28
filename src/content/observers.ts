@@ -398,24 +398,15 @@ async function pageVideosObserver() {
     }
     coreLog(`Setting up ${pageName} page videos observer (${isMobileSite() ? 'mobile' : 'desktop'})`);
 
-    if (isMobileSite()) {
-        // Mobile: wait for rich-grid-renderer-contents
-        const gridContents = document.querySelector('.rich-grid-renderer-contents');
-        
-        if (!gridContents) {
-            // Wait for the first grid to appear
-            await new Promise<void>(resolve => {
-                const observer = new MutationObserver(() => {
-                    const found = document.querySelector('.rich-grid-renderer-contents');
-                    if (found) {
-                        observer.disconnect();
-                        resolve();
-                    }
-                });
-                observer.observe(document.documentElement, { childList: true, subtree: true });
-            });
-        }
+    const selector = isMobileSite() ? '.rich-grid-renderer-contents' : '#contents.ytd-rich-grid-renderer';
 
+    try {
+        await waitForElement(selector, 10000);
+    } catch {
+        // Timeout
+    }
+
+    if (isMobileSite()) {
         const grid = document.querySelector('.rich-grid-renderer-contents') as HTMLElement;
         if (grid) {
             const observer = new MutationObserver(() => handleGridMutationDebounced(pageName));
@@ -427,23 +418,6 @@ async function pageVideosObserver() {
             pageGridObservers.push(observer);
         }
     } else {
-        // Desktop: wait for rich grid renderer
-        const grids = Array.from(document.querySelectorAll('#contents.ytd-rich-grid-renderer')) as HTMLElement[];
-
-        if (grids.length === 0) {
-            // Wait for the first grid to appear
-            await new Promise<void>(resolve => {
-                const observer = new MutationObserver(() => {
-                    const found = document.querySelector('#contents.ytd-rich-grid-renderer');
-                    if (found) {
-                        observer.disconnect();
-                        resolve();
-                    }
-                });
-                observer.observe(document.documentElement, { childList: true, subtree: true });
-            });
-        }
-
         const allGrids = Array.from(document.querySelectorAll('#contents.ytd-rich-grid-renderer')) as HTMLElement[];
         allGrids.forEach(grid => {
             const observer = new MutationObserver(() => handleGridMutationDebounced(pageName));
@@ -474,12 +448,7 @@ function handleGridMutationDebounced(pageName: string) {
     pageVideosDebounceTimer = window.setTimeout(() => {
         coreLog(`${pageName} page mutation detected.`);
         refreshShortsAlternativeFormat();
-        refreshBrowsingVideos();
         refreshBrowsingVideos().then(() => {
-            setTimeout(() => {
-                refreshBrowsingVideos();
-                refreshShortsAlternativeFormat();
-            }, 500);
             setTimeout(() => {
                 refreshBrowsingVideos();
                 refreshShortsAlternativeFormat();
@@ -512,9 +481,6 @@ function recommendedVideosObserver() {
                     refreshBrowsingVideos().then(() => {
                         setTimeout(() => {
                             refreshBrowsingVideos();
-                        }, 1000);
-                        setTimeout(() => {
-                            refreshBrowsingVideos();
                         }, 2000);
                     });
                     recommendedDebounceTimer = null;
@@ -539,9 +505,6 @@ function recommendedVideosObserver() {
                 recommendedDebounceTimer = window.setTimeout(() => {
                     browsingTitlesLog('Recommended videos mutation debounced (desktop)');
                     refreshBrowsingVideos().then(() => {
-                        setTimeout(() => {
-                            refreshBrowsingVideos();
-                        }, 1000);
                         setTimeout(() => {
                             refreshBrowsingVideos();
                         }, 2000);
@@ -608,10 +571,6 @@ function searchResultsObserver() {
                             setTimeout(() => {
                                 refreshBrowsingVideos();
                                 refreshShortsAlternativeFormat();
-                            }, 1000);
-                            setTimeout(() => {
-                                refreshBrowsingVideos();
-                                refreshShortsAlternativeFormat();
                             }, 2000);
                         });
                         searchDebounceTimer = null;
@@ -632,10 +591,6 @@ function searchResultsObserver() {
                                 browsingTitlesLog(`${pageName} page mutation debounced`);
                                 refreshShortsAlternativeFormat();
                                 refreshBrowsingVideos().then(() => {
-                                    setTimeout(() => {
-                                        refreshBrowsingVideos();
-                                        refreshShortsAlternativeFormat();
-                                    }, 1000);
                                     setTimeout(() => {
                                         refreshBrowsingVideos();
                                         refreshShortsAlternativeFormat();
@@ -783,31 +738,31 @@ function setupNotificationTitlesDropdownObserver() {
     cleanupNotificationTitlesDropdownObserver();
     notificationDropdownHandled = false;
 
-    notificationTitlesDropdownObserver = new MutationObserver(() => {
-        waitForElement('ytd-popup-container tp-yt-iron-dropdown[vertical-align="top"]').then((dropdown) => {
-            // Find the multi-page menu renderer inside the dropdown
-            const menuRenderer = dropdown.querySelector('ytd-multi-page-menu-renderer');
-            const menuStyle = menuRenderer?.getAttribute('menu-style');
-            const isNotificationMenu = menuStyle === 'multi-page-menu-style-type-notifications';
-
-            const computedStyle = window.getComputedStyle(dropdown);
-            const isVisible = computedStyle.display !== 'none';
-            
-            if (isVisible && isNotificationMenu && !notificationDropdownHandled) {
-                // Dropdown became visible and is the notifications menu
-                notificationDropdownHandled = true;
-                coreLog('Notification titles dropdown appeared, setting up observer');
-                setupNotificationTitlesObserver();
-            } else if ((!isVisible || !isNotificationMenu) && notificationDropdownHandled) {
-                // Dropdown became hidden or is not the notifications menu
+    const checkNotificationDropdown = () => {
+        const dropdown = document.querySelector('ytd-popup-container tp-yt-iron-dropdown[vertical-align="top"]');
+        if (!dropdown) {
+            if (notificationDropdownHandled) {
                 notificationDropdownHandled = false;
-                //coreLog('Notification titles dropdown disappeared or is not notifications, ready for next opening');
                 cleanupNotificationTitlesObserver();
             }
-        }).catch(() => {
-            // Element not found within timeout, skip processing
-        });
-    });
+            return;
+        }
+
+        const menuRenderer = dropdown.querySelector('ytd-multi-page-menu-renderer');
+        const isNotificationMenu = menuRenderer?.getAttribute('menu-style') === 'multi-page-menu-style-type-notifications';
+        const isVisible = window.getComputedStyle(dropdown).display !== 'none';
+
+        if (isVisible && isNotificationMenu && !notificationDropdownHandled) {
+            notificationDropdownHandled = true;
+            coreLog('Notification titles dropdown appeared, setting up observer');
+            setupNotificationTitlesObserver();
+        } else if ((!isVisible || !isNotificationMenu) && notificationDropdownHandled) {
+            notificationDropdownHandled = false;
+            cleanupNotificationTitlesObserver();
+        }
+    };
+
+    notificationTitlesDropdownObserver = new MutationObserver(checkNotificationDropdown);
 
     // Observe the popup container if it exists, otherwise observe documentElement as fallback
     const popupContainer = document.querySelector('ytd-popup-container');
@@ -819,6 +774,7 @@ function setupNotificationTitlesDropdownObserver() {
         attributes: true,
         attributeFilter: ['style']
     });
+    checkNotificationDropdown();
 }
 
 function cleanupNotificationTitlesDropdownObserver() {
@@ -976,14 +932,6 @@ function handleUrlChangeInternal() {
             refreshBrowsingVideos();
             refreshShortsAlternativeFormat();
         }, 2000);
-        setTimeout(() => {
-            refreshBrowsingVideos();
-            refreshShortsAlternativeFormat();
-        }, 5000);
-        setTimeout(() => {
-            refreshBrowsingVideos();
-            refreshShortsAlternativeFormat();
-        }, 10000);
         
         // Handle miniplayer titles on all pages (since miniplayer can appear from any page)
         refreshMiniplayerTitle();
