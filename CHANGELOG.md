@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [Unreleased]
+## [2.26.1] - 2026-10-28
 
 ### Fixed
 - Fixed CPU spikes and memory leaks during page initialization and navigation by optimizing `waitForElement` DOM observation root and preventing infinite loops in mutation observers.
@@ -700,7 +700,8 @@ optimize waitForElement to reduce DOM queries (checking addedNodes only)
 
 *Note: This changelog was introduced in version 2.2.30. For earlier version history, please refer to the [GitHub releases](https://github.com/YouG-o/YouTube_No_Translation/releases).*
 
-[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.26.0...HEAD
+[Unreleased]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.26.1...HEAD
+[2.26.1]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.26.0...v2.26.1
 [2.26.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.25.1...v2.26.0
 [2.25.1]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.25.0...v2.25.1
 [2.25.0]: https://github.com/YouG-o/YouTube_No_Translation/compare/v2.24.6...v2.25.0
