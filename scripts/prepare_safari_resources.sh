@@ -10,7 +10,6 @@ ICON_SRC="$ROOT_DIR/assets/images/icon_1024.png"
 APPICONSET="$SAFARI_DIR/Assets.xcassets/AppIcon.appiconset"
 ACCENTCOLOR="$SAFARI_DIR/Assets.xcassets/AccentColor.colorset"
 LARGEICON="$SAFARI_DIR/Assets.xcassets/LargeIcon.imageset"
-DIST_DIR="$SAFARI_DIR/Resources/dist"
 
 
 # --- Initial validations ---
@@ -18,8 +17,6 @@ if [ ! -f "$ICON_SRC" ]; then
   echo "Source icon not found at $ICON_SRC"
   exit 1
 fi
-
-echo "Assuming Safari extension project is already generated at $DEST_DIR"
 
 # --- Prepare icon and color directories ---
 rm -rf "$APPICONSET"
@@ -52,10 +49,8 @@ echo "AccentColor.colorset created."
 
 # --- Generate App Icons ---
 declare -a ICON_SIZES=(
-  "16 1" "16 2" "20 1" "20 2" "20 3" "29 1" "29 2" "29 3"
-  "32 1" "32 2" "40 1" "40 2" "40 3" "60 1" "60 2" "60 3"
-  "76 1" "76 2" "83.5 2" "128 1" "128 2" "256 1" "256 2"
-  "512 1" "512 2" "1024 1"
+  "16 1" "16 2" "32 1" "32 2" "128 1" "128 2"
+  "256 1" "256 2" "512 1" "512 2"
 )
 
 for entry in "${ICON_SIZES[@]}"; do
@@ -163,34 +158,4 @@ cat > "$LARGEICON/Contents.json" <<EOF
 EOF
 echo "LargeIcon.imageset created."
 
-# --- Reorganize Safari extension files ---
-echo "Reorganizing files inside Safari extension..."
-
-# Clean dist directory for fresh reorganization
-rm -rf "$DIST_DIR"
-mkdir -p "$DIST_DIR"
-
-cd "$DIST_DIR" || {
-  echo "Could not access directory: $DIST_DIR"
-  exit 1
-}
-
-mkdir -p content background popup
-
-# --- Reorganize Safari extension files ---
-cd "$DIST_DIR" || {
-  echo "Could not access directory: $DIST_DIR"
-  exit 1
-}
-
-echo "Reorganizing files inside Safari extension..."
-
-mkdir -p content background popup
-
-[ -f content.js ] && mv -f content.js content/ || echo "  content.js not found"
-[ -f background.js ] && mv -f background.js background/ || echo "  background.js not found"
-[ -f popup.html ] && mv -f popup.html popup/ || echo "  popup.html not found"
-[ -f browser-polyfill.js ] && echo "browser-polyfill.js is present." || echo "  browser-polyfill.js not found"
-
-echo "Done. Verify Xcode -> Copy Bundle Resources includes all required files."
 echo "Script completed successfully."

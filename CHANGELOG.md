@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Safari: raised the macOS deployment target from 10.14 to 12.0, the minimum supported by current Xcode versions.
+- Safari: the Xcode project is now signed to run locally, so it builds without an Apple Developer account or a specific development team.
+- Clarified the Safari build steps in the README, including how to allow unsigned extensions.
+
+### Fixed
+- Safari: generate only macOS app icon sizes, fixing the "unassigned children" warning in Xcode.
+
+### Removed
+- Safari: removed the unused `copy:safari` step and the dead file reorganization block from `prepare_safari_resources.sh`.
+
 ## [2.26.1] - 2026-10-28
 
 ### Fixed
