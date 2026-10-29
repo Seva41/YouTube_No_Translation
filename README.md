@@ -104,9 +104,13 @@ The extension is not available on the App Store. You must [build the extension y
   # Build for Safari (macOS only)
   npm run prepare:safari
   open "safari/YouTube No Translation/YouTube No Translation.xcodeproj"
-  # Then build and run in Xcode to generate the .app
-  # Make sure you have allowed usigned extension in Safari settings
+  # Then build and run in Xcode (Product > Run) to generate the .app
   ```
+
+  The project is signed to run locally, so no Apple Developer account is needed. Before enabling the extension, allow unsigned extensions in Safari:
+  1. Safari > Settings > Advanced > enable "Show features for web developers"
+  2. Develop > enable "Allow Unsigned Extensions" (this resets every time Safari quits)
+  3. Safari > Settings > Extensions > enable "No Translation for YouTube"
 
   ---
 

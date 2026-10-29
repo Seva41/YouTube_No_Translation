@@ -54,7 +54,6 @@ web-ext-artifacts/
 safari/YouTube No Translation/YouTube No Translation Extension/Resources/**
 safari-icons.sh
 safari/YouTube No Translation/YouTube No Translation/Assets.xcassets/
-safari/YouTube No Translation/YouTube No Translation/Resources/dist
 
 # Reviewer source package for Mozilla
 reviewer-source*.zip
